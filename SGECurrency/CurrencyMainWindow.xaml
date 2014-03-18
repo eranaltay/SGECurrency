@@ -1,0 +1,290 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="CurrencyWindow" 
+        ResizeMode="CanMinimize"
+        WindowState="Normal"
+        WindowStyle="ThreeDBorderWindow"
+        WindowStartupLocation="CenterScreen"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:local="clr-namespace:SGECurrency"
+        xmlns:utilities="clr-namespace:SGECurrency.Utilities" 
+        xmlns:objects="clr-namespace:SGECurrency.Objects"
+        mc:Ignorable="d" x:Class="SGECurrency.CurrencyMainWindow"  
+        Title="{Binding Path=CurrenciesDate}" Height="429" Width="685" KeyDown="OnEnterKeyDown" Loaded="MainCurrencyWindowInitialized" TextInput="OnKeyDownMainWindow" Closing="OnWindowCloseEvent">
+    <Window.Resources>
+
+        <utilities:CurrencyChangeValueConverter x:Key="ValueConverter"/>
+
+        <!--labels style Style-->
+        <Style TargetType="{x:Type Label}">
+            <Setter Property="Margin" Value="5,0,5,0" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+        </Style>
+
+        <!--TextBox validation style Style-->
+        <Style TargetType="{x:Type TextBox}">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,2,40,2" />
+            <Setter Property="Validation.ErrorTemplate">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <DockPanel LastChildFill="true">
+                            <Border Background="Crimson" DockPanel.Dock="Top" Margin="5,-65,5,0" Width="150" Height="15" CornerRadius="5"
+                                    ToolTip="{Binding ElementName=customAdorner, Path=AdornedElement.(Validation.Errors)[0].ErrorContent}">
+                                <Border.Effect>
+                                    <DropShadowEffect/>
+                                </Border.Effect>
+                                <TextBlock Text="Invalid Input" VerticalAlignment="center" HorizontalAlignment="center" FontWeight="ExtraBlack" Foreground="White" ToolTip="Invalid Input">
+                                </TextBlock>
+                            </Border>
+                            <AdornedElementPlaceholder Name="customAdorner" VerticalAlignment="Center" ToolTip="Invalid Input" >
+                                <Border BorderBrush="Red" BorderThickness="4" >
+                                    <Border.Effect>
+                                        <BlurEffect/>
+                                    </Border.Effect>
+                                </Border>
+                            </AdornedElementPlaceholder>
+                        </DockPanel>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--Tabs control Style-->
+        <Style  TargetType="{x:Type TabControl}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TabControl}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TabPanel 
+              Grid.Row="0"
+              Panel.ZIndex="1" 
+              Margin="0,0,4,-1" 
+              IsItemsHost="True"
+              Background="Transparent" />
+                            <Border 
+              Grid.Row="1"
+              BorderBrush="Black" 
+              BorderThickness="1" 
+              CornerRadius="0, 12, 12, 12" >
+                                <Border.Background>
+                                    <LinearGradientBrush>
+                                        <GradientStop Color="LightBlue" Offset="0" />
+                                        <GradientStop Color="White" Offset="0.8" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <ContentPresenter ContentSource="SelectedContent" />
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--Tabs items Style-->
+        <Style TargetType="{x:Type TabItem}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TabItem}">
+                        <Grid>
+                            <Border 
+              Name="Border"
+              Background="LightBlue"
+              BorderBrush="Black" 
+              BorderThickness="1,1,1,1" 
+              CornerRadius="6,6,0,0" >
+                                <ContentPresenter x:Name="ContentSite"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                ContentSource="Header"
+                Margin="12,2,12,2"/>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="LightBlue" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="False">
+                                <Setter TargetName="Border" Property="Background" Value="Beige" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Window.Background>
+        <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.0,0">
+            <GradientStop Color="LightBlue" Offset="1"/>
+            <GradientStop Color="{DynamicResource blueBrush}" Offset="0.4"/>
+        </LinearGradientBrush>
+    </Window.Background>
+
+    <Grid x:Name="MainGrid" Margin="19,29,0,0" HorizontalAlignment="Left" Width="638" Height="350" VerticalAlignment="Top">
+        <Grid.CommandBindings>
+            <CommandBinding Command="New" CanExecute="ExchangeCalculationCanExecute" Executed="OnCalcButtonClick"  />
+        </Grid.CommandBindings>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="29*"/>
+            <RowDefinition Height="61*"/>
+            <RowDefinition Height="85*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <TabControl x:Name="TabSelected" Margin="-16,-28,0,0" Focusable="False" FontStyle="Italic" RenderTransformOrigin="0.494,0.511" Grid.RowSpan="3" HorizontalAlignment="Left" Width="654" Height="378" VerticalAlignment="Top">
+            <TabControl.Effect>
+                <DropShadowEffect/>
+            </TabControl.Effect>
+            <TabItem x:Name="MainTabItem" HorizontalContentAlignment="Stretch" Margin="2,6,-6,1" Cursor="Hand">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Name="MoneyTabImage" Height="auto" Width="auto" Source="TabItemImages/money.png" />
+                        <TextBlock Text="Currency" Margin="2,0,0,0" VerticalAlignment="Center" FontWeight="Medium" FontSize="13" />
+                    </StackPanel>
+                </TabItem.Header>
+                <TabItem.Height>45</TabItem.Height>
+                <AdornerDecorator x:Name="Adorner" Margin="0,0,-13,-16">
+                    <Grid Margin="-2,-48,10,10" HorizontalAlignment="Right" Width="657" Height="379" VerticalAlignment="Bottom">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="163*"/>
+                            <RowDefinition Height="32*"/>
+                            <RowDefinition Height="184*"/>
+                        </Grid.RowDefinitions>
+
+                        <Button x:Name="UpdateButton" Content="Update" HorizontalAlignment="Right" Height="27" Margin="0,0,301,35" VerticalAlignment="Bottom" Width="75" Click="OnClickUpdateCurrenciesButton" BorderThickness="2" BorderBrush="#FF007FEA" IsEnabled="False" Cursor="Hand">
+                            <Button.Background>
+                                <ImageBrush/>
+                            </Button.Background>
+                        </Button>
+
+                        <ComboBox x:Name="LeftComboBox"  HorizontalAlignment="Right" Margin="0,0,432,0" Width="140" SelectionChanged="OnSelectedItemChangedFromComboBoxes" Grid.Row="1" Height="28" VerticalAlignment="Bottom" BorderThickness="3" SelectedIndex="14" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontWeight="SemiBold" FontStyle="Normal" Foreground="#FF0871AC" Focusable="False" FontSize="13"/> 
+                        <ComboBox x:Name="RightComboBox"  HorizontalAlignment="Right" Margin="0,0,111,183" Width="140" SelectionChanged="OnSelectedItemChangedFromComboBoxes" Grid.Row="1" Height="28" VerticalAlignment="Bottom" AllowDrop="False" BorderThickness="3" FontSize="13" SelectedIndex="6" IsReadOnly="True" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Focusable="False" Grid.RowSpan="2" Foreground="#FF0871AC" FontStyle="Normal" FontWeight="SemiBold"/>
+                        <GroupBox Header="From" HorizontalAlignment="Left" Margin="97,85,0,0" VerticalAlignment="Top" Height="77" Width="118" FontSize="14" FontStyle="Normal" FontWeight="SemiBold" BorderBrush="#FF009FFF">
+                            <Image x:Name="LeftFlagImage" HorizontalAlignment="Right" Margin="0,0,7,0" Width="89" Stretch="Fill" MouseWheel="OnMouseWheelChangeFlagImage" Cursor="SizeNS"/>
+                        </GroupBox>
+                        <GroupBox Header="To" HorizontalAlignment="Left" Margin="416,86,0,0" VerticalAlignment="Top" Height="77" Width="118" FontSize="14" FontStyle="Normal" FontWeight="SemiBold" BorderBrush="#FF009FFF">
+                            <Image x:Name="RightFlagImage" HorizontalAlignment="Right" Margin="0,0,7,-1" Width="89" MouseWheel="OnMouseWheelChangeFlagImage" Cursor="SizeNS" Stretch="Fill"/>
+                        </GroupBox>
+
+                        <Label x:Name="CultureCoinName" Content="" HorizontalAlignment="Right" Height="43" Margin="0,120,48,0" VerticalAlignment="Top" RenderTransformOrigin="0.469,0.424" Width="193" FontSize="14" FontStretch="SemiExpanded" Grid.Row="2" TextOptions.TextHintingMode="Animated" FontWeight="SemiBold" Foreground="#FF009FF9"/>
+                        <Button x:Name="CalcButton" Command ="New" Content="Calculate" HorizontalAlignment="Right" Margin="0,125,457,0" VerticalAlignment="Top" Width="75" Height="23" Click="OnCalcButtonClick" Focusable="False" Grid.Row="2" RenderTransformOrigin="0.484,-0.24" BorderThickness="2" BorderBrush="#FF007FEA" Cursor="Hand">
+                            <Button.Background>
+                                <ImageBrush/>
+                            </Button.Background>
+                        </Button>
+                        <Button x:Name="SwitchSideButton" Command ="New" Content="Switch" HorizontalAlignment="Left" Margin="281,0,0,4" Width="75" Click="OnClickSwitchSideButton" RenderTransformOrigin="0.48,-0.609" Height="23" VerticalAlignment="Bottom" BorderThickness="2" BorderBrush="#FF007FEA" Cursor="Hand" Grid.Row="1">
+                            <Button.Background>
+                                <ImageBrush/>
+                            </Button.Background>
+                        </Button>
+                        <Label x:Name="AboutLabel" Margin="0,50,10,77" FontSize="15" FontWeight="SemiBold" FontStretch="SemiExpanded" Width="51" Cursor="Hand">
+                            <Hyperlink x:Name="AboutHyperLink" Click="OnClickAboutHyperLink">About</Hyperlink>
+                        </Label>
+                        <Label x:Name="ProgramStatus" HorizontalAlignment="Center" Margin="161,0,178,77" VerticalAlignment="Bottom" Width="318" FontSize="14" FontStretch="SemiExpanded" FontWeight="Medium" FontStyle="Normal" HorizontalContentAlignment="Center" Height="31">
+                            <Label.Effect>
+                                <DropShadowEffect/>
+                            </Label.Effect>
+                            <Label.Style>
+                                <Style TargetType="{x:Type Label}">
+                                    <Style.Triggers>
+                                        <Trigger Property="Visibility" Value="Visible">
+                                            <Trigger.EnterActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" Duration="00:00:00" BeginTime="00:00:00" From="0.0" To="1.0" />
+                                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" Duration="00:00:02" BeginTime="00:00:01" From="1.0" To="0.0" />
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.EnterActions>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Label.Style> Status
+                        </Label>
+                        <GroupBox Header="Amount" HorizontalAlignment="Left" Margin="40,34,0,0" Grid.Row="2" VerticalAlignment="Top" Height="86" Width="248" FontSize="14" FontStyle="Normal" FontWeight="SemiBold" BorderBrush="#FF009FFF" Focusable="True" BorderThickness="2">
+                            <TextBox x:Name="InputTextBox"  HorizontalAlignment="Right" Height="54" Margin="0,0,2,3" TextWrapping="Wrap" VerticalAlignment="Bottom" Width="231" TextChanged="OnChangedInputTextBox" 
+                        		Validation.Error="ValidationError"
+                        		Text="{Binding Input, NotifyOnValidationError=true, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=true}" AutoWordSelection="True" FontSize="25" FontWeight="SemiBold" FontStyle="Normal" TextAlignment="Center" IsEnabled="False" BorderThickness="3" />
+                        </GroupBox>
+                        <GroupBox Header="Result" Margin="329,34,48,0" Grid.Row="2" VerticalAlignment="Top" Height="86" FontSize="14" FontWeight="SemiBold" FontStyle="Normal" BorderBrush="#FF009FFF" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True" Focusable="True" BorderThickness="2">
+                            <TextBlock x:Name="OutputTextBox" TextWrapping="Wrap" Height="61" RenderTransformOrigin="0.614,-1.536" FontSize="27" FontStyle="Normal" FontFamily="Segoe WP Semibold" Foreground="#FF009FF9" TextAlignment="Center" HorizontalAlignment="Left" Width="266" Padding="0,10,0,20" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True" FontWeight="Bold" FontStretch="SemiExpanded">
+                                <TextBlock.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem x:Name="CopyToClipboardMenuItem" Header="Copy To Clipboard" Click="OnClickOutputTextBoxContextMenu"/>
+                                    </ContextMenu>
+                                </TextBlock.ContextMenu>
+                            </TextBlock>
+                        </GroupBox>
+                    </Grid>
+                </AdornerDecorator>
+            </TabItem>
+            <TabItem x:Name="RatesTabItem" Margin="10,6,-10,0" Width="106" Cursor="Hand">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" >
+                        <Image Name="Secimg" Height="46" Width="41" Source="TabItemImages\stock.png" />
+                        <TextBlock Text="Rates" Margin="2,0,0,0" VerticalAlignment="Center" FontSize="13" FontWeight="Medium" />
+                    </StackPanel>
+                </TabItem.Header>
+                <Grid x:Name="RatesTabGrid" Margin="6,2,4,4" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="233*"/>
+                        <ColumnDefinition Width="88*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <DataGrid x:Name="RatesDataGrid" ItemsSource="{Binding}" FontSize="12" IsReadOnly="True" Padding="0,0,3,0" SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display"  TextOptions.TextHintingMode="Fixed" AreRowDetailsFrozen="True" BorderThickness="4" CanUserResizeRows="False" MinColumnWidth="80" MaxColumnWidth="110" CanUserResizeColumns="False" CanUserAddRows="False" ClipboardCopyMode="IncludeHeader" ClipToBounds="True"  IsTextSearchEnabled="True" AlternationCount="2" FontWeight="SemiBold" Margin="0,6,0,0" AutoGenerateColumns="False" FontStyle="Normal" FontStretch="SemiExpanded" FontFamily="Cambria" Grid.ColumnSpan="2" HorizontalAlignment="Center" HorizontalScrollBarVisibility="Disabled" Width="642" >
+                        <DataGrid.AlternatingRowBackground>
+                            <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.GradientInactiveCaptionColorKey}}"/>
+                        </DataGrid.AlternatingRowBackground>
+                        <DataGrid.BorderBrush>
+                            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                <GradientStop Color="#FFD4F1FF" Offset="0.477"/>
+                                <GradientStop Color="#FF76C0E2" Offset="0.766"/>
+                                <GradientStop Color="#FFD4F1FF" Offset="0.494"/>
+                                <GradientStop Color="#FFD0EFFD" Offset="0.515"/>
+                                <GradientStop Color="#FFCBECFB" Offset="0.531"/>
+                                <GradientStop Color="#FFCBECFB" Offset="0.531"/>
+                                <GradientStop Color="#FFC1E7F8" Offset="0.556"/>
+                            </LinearGradientBrush>
+                        </DataGrid.BorderBrush>
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="Block.TextAlignment" Value="Center"/>
+                            </Style>
+                        </DataGrid.CellStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn x:Name="NameCol" Binding="{Binding Name}" ClipboardContentBinding="{x:Null}" Header="Name" MinWidth="95" MaxWidth="130"/>
+                            <DataGridTextColumn x:Name="CountryCol" Binding="{Binding Country}" ClipboardContentBinding="{x:Null}" Header="Country" MinWidth="130" MaxWidth="160"/>
+                            <DataGridTextColumn x:Name="CodeCol" Binding="{Binding Code}" ClipboardContentBinding="{x:Null}" Header="Code" MinWidth="85" MaxWidth="110"/>
+                            <DataGridTextColumn x:Name="UnitCol" Binding="{Binding Unit}" ClipboardContentBinding="{x:Null}" Header="Unit" MinWidth="65" MaxWidth="80"/>
+                            <DataGridTextColumn x:Name="RateCol" Binding="{Binding Rate}" ClipboardContentBinding="{x:Null}" Header="Rate" MinWidth="95" MaxWidth="110"/>
+                            <DataGridTextColumn x:Name="ChangeCol" ClipboardContentBinding="{x:Null}" Header="Change" MinWidth="95" Width="120" MaxWidth="100">
+                                <DataGridTextColumn.Binding>
+                                    <Binding Path="Change"/>
+                                </DataGridTextColumn.Binding>
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="{x:Type TextBlock}">
+                                        <Setter Property="Foreground" Value="{Binding Change, Converter={StaticResource ValueConverter}}"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTemplateColumn x:Name="ChangeImageCol"  Header="" MinWidth="40" MaxWidth="50">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Image Source="{Binding Path=ChangeRateStatusImageSource}" Width="20" Height="20"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                        <DataGrid.DataContext>
+                            <objects:CurrencyObject/>
+                        </DataGrid.DataContext>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
